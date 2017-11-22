@@ -1,0 +1,260 @@
+---
+title: "Tooth Growth Analysis"
+author: "John Joyce"
+date: "October 22, 2017"
+output:
+  pdf_document: default
+  keep_md: yes
+  html_document: null
+file: Tooth_Growth.Rmd
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###**Summary**  
+This analysis investigates the effects of dosage and delivery method contributing to tooth growth in gunea pigs.  The study uses the base R data set "ToothGrowth", which contains the following data for 60 guinea pigs.  
+
+    len:    the length of odontoblasts (cells responsible for tooth growth) in 60 guinea pigs. 
+    supp:   The type of delivery method
+            "orange juice (OJ)" or "ascorbic acid (VC). 
+    dose:   Each animal received one of three dose levels of vitamin C
+            (0.5, 1, and 2 mg/day) by one of two delivery methods.
+
+###**Data Analysis**  
+This section reports on initial findings and structure of the ToothGrowth data set.
+
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+##  Load the following R packages to perform the analysis.
+
+    library(datasets)
+    library(ggplot2)
+    library(dplyr)
+```  
+The following output highlights the first few rows of the data set.
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+
+##  Review the first few rows of data in the data set.
+
+    data <- ToothGrowth
+    head(data)
+```
+The follownig output highlights the summary & high-level statistics of the data set.
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+
+##  Review the summary of the data in the data set.
+
+    summary(data)
+```
+The following output highlights the data variable types and number of unique doses.
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+##  Review the data variable types and number of unique doses.
+
+    str(data)
+    unique(data$dose)
+```
+
+In summary, the "ToothGrowth" data set is made up of a total of 60 data samples.
+There are 10 data samples for each dose / delivery method combination with the following characteristics.  
+
+*The tooth length ranges from `r (min(range(ToothGrowth$len)))` to `r (max(range(ToothGrowth$len)))`*  
+*The dose values consist of `r unique(ToothGrowth$dose)`*
+
+###**Hypothesis** 
+The following charts illustrate the tooth length samples grouped by dosage and delivery method:
+```{r echo=FALSE, fig.align='center',fig.height=5,fig.width=10}
+
+##  Generate a ggplot2 using the following parameters for the plot:
+##      -   g:                      variable for initial plot layer 
+##      -   aes:                    aesthetics (x: supp, y: len)
+##      -   geom_boxplot color:      OJ = "red", VC = "blue" 
+##      -   geom_point color:        OJ = "red", VC = "blue"
+##      -   x axis label (labs):    "Delivery Method (supp)"
+##      -   y axis label (labs):    "Tooth Length (len)"
+##      -   main title (labs):      "Tooth Length by Dosage and Delivery Method"
+##      -   facet_grid:             Broken out by dose (. ~ dose)
+##      -   theme element:          center: element_text(hjust = 0.5) 
+    
+    g <- ggplot(data, aes(supp,len)) +
+        geom_boxplot(aes(colour=factor(supp))) +
+        geom_point(aes(colour=factor(supp))) +
+        theme(plot.title = element_text(hjust = 0.5)) +
+        labs(title="Tooth Length by Dosage and Delivery Method") +
+        labs(x="Delivery Method (supp)",y="Tooth Length (len)") + 
+        scale_colour_manual(values = c("red", "blue")) +
+        facet_grid(. ~ dose)
+    print(g)    
+```
+The following charts illustrate the tooth length samples grouped by delivery method and dosage:
+```{r echo=FALSE, fig.align='center',fig.height=5,fig.width=10}
+
+##  Generate a ggplot2 using the following parameters for the plot:
+##      -   g:                      variable for initial plot layer 
+##      -   aes:                    aesthetics (x: supp, y: len)
+##      -   geom_boxplot color:      OJ = "red", VC = "blue" 
+##      -   geom_point color:        OJ = "red", VC = "blue"
+##      -   x axis label (labs):    "Delivery Method (supp)"
+##      -   y axis label (labs):    "Tooth Length (len)"
+##      -   main title (labs):      "Tooth Length by Delivery Method and Dosage"
+##      -   facet_grid:             Broken out by dose (. ~ dose)
+##      -   theme element:          center: element_text(hjust = 0.5) 
+    
+    
+    g <- ggplot(data, aes(as.factor(dose),len)) +
+        geom_boxplot(aes(colour=factor(dose))) +
+        geom_point(aes(colour=factor(dose))) +
+        theme(plot.title = element_text(hjust = 0.5)) +
+        labs(title="Tooth Length by Delivery Method and Dosage") +
+        labs(x="Delivery Method (dose)",y="Tooth Length (len)") + 
+        scale_colour_manual(values = c("red", "blue", "green")) +
+        facet_grid(. ~ supp)
+    print(g)    
+```
+In general, it appears that the tooth length increases as the dosage increases.  
+Also, It appears that the OJ delivery method contributes to longer tooth length.  
+Therefore, the null hypothesis ($N_{0}$) is that the OJ delivery method contributes to longer tooth length.  
+
+###**Hypothesis Testing** 
+The t test is used to support or reject the null hypothesis ($N_{0}$) that
+the OJ delivery method contributes to longer tooth length results than the VC method.
+
+The following t test is calculated using a confidence interval of 95% for tooth length (len) dependent upon supplement (supp).
+
+It is also assumed that that data is not paired. The p-value would need to be less then .05 in order to reject 
+the null hypothesis ($N_{0}$).  
+
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+##  Perform t-testing for the hypothesis based upon supplement (supp) only.
+    
+    test_supp <- t.test(len~supp,data = data,paired=FALSE)
+    test_supp
+```
+*The test results in a p-value of `r round(test_supp$p.value,3)`.*
+*The test results in a confidence interval of `r round(test_supp$conf.int,3)`.*
+
+Since the p-value is greater than .05, we can't reject the null hypothesis ($N_{0}$).
+However, even though the overall mean for OJ is higher, the confidence interval contains zero, therefore we can't entirely provide sufficient statistical evidence that the difference in means is enough for this hypothesis.  Further analysis is needed to further justify the original null hypothesis ($N_{0}$).  
+
+The following t tests are calculated using a confidence interval of 95% for tooth length (len) dependent upon supplement (supp) for each dosage (dose).  
+It is also assumed that that data is not paired. The p-value would need to be less then .05 in order to reject 
+the null hypothesis ($N_{0}$).
+
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+##  Filter the data set to get supplement by dosage level.
+##  Perform t-testing for the hypothesis based upon each dosage (dose).
+    
+    dose_0.5        <- filter(data,dose==.5)
+    dose_1          <- filter(data,dose==1)
+    dose_2          <- filter(data,dose==2)
+    
+    test_dose_0.5   <- t.test(len~supp,data = dose_0.5,paired=FALSE)
+    test_dose_1     <- t.test(len~supp,data = dose_1,paired=FALSE)
+    test_dose_2     <- t.test(len~supp,data = dose_2,paired=FALSE)
+    
+    test_dose_0.5
+    test_dose_1
+    test_dose_2
+```
+*The test result for dose = .5 has p-value of `r round(test_dose_0.5$p.value,3)`.*  
+*The test result for dose = 1 has p-value of `r round(test_dose_1$p.value,3)`.*  
+*The test result for dose = 2 has p-value of `r round(test_dose_2$p.value,3)`.*  
+
+*The test result for dose = .5 has a confidence interval of `r round(test_dose_0.5$conf.int,3)`.*  
+*The test result for dose = 1 has a confidence interval of `r round(test_dose_1$conf.int,3)`.*  
+*The test result for dose = 2 has a confidence interval of `r round(test_dose_2$conf.int,3)`.*  
+
+Since the p-value is greater than .05 for the dose=2 test case, we can reject the null hypothesis ($N_{0}$) for this case.
+The p-value is lower than .05 for the dose=.5 and dose=1 test cases, therefore we accept the null hypothesis ($N_{0}$) for these cases.  
+Also, the confidence intervals do not contain zero for the dose=.5 and dose=1 test cases, therefore we have enough statistical evidence to accept the null hypothesis ($N_{0}$) for these two scenarios.  
+
+###**Conclusion** 
+Based upon the results of this analysis, the conclusion is that orange juice (OJ) is more effective than ascorbic acid (VC) for dosage levels of .5 and 1.  
+However, it is not determined which delivery method is more effective at higher doses such as 2.
+
+\newpage
+
+###**Raw Code** 
+```{r echo=TRUE, eval=FALSE, message=FALSE,warning=FALSE}
+##  Load the following R packages to perform the analysis.
+
+    library(datasets)
+    library(ggplot2)
+
+##  Review the first few rows of data in the data set.
+
+    data <- ToothGrowth
+    head(data)
+    
+##  Review the summary of the data in the data set.
+
+    summary(data)
+    
+##  Review the data variable types and number of unique doses.
+
+    str(data)
+    unique(data$dose)
+
+##  Generate a ggplot2 using the following parameters for the plot:
+##      -   g:                      variable for initial plot layer 
+##      -   aes:                    aesthetics (x: supp, y: len)
+##      -   geom_boxplot color:      OJ = "red", VC = "blue" 
+##      -   geom_point color:        OJ = "red", VC = "blue"
+##      -   x axis label (labs):    "Delivery Method (supp)"
+##      -   y axis label (labs):    "Tooth Length (len)"
+##      -   main title (labs):      "Tooth Length by Dosage and Delivery Method"
+##      -   facet_grid:             Broken out by dose (. ~ dose)
+##      -   theme element:          center: element_text(hjust = 0.5) 
+    
+    g <- ggplot(data, aes(supp,len)) +
+        geom_boxplot(aes(colour=factor(supp))) +
+        geom_point(aes(colour=factor(supp))) +
+        theme(plot.title = element_text(hjust = 0.5)) +
+        labs(title="Tooth Length by Dosage and Delivery Method") +
+        labs(x="Delivery Method (supp)",y="Tooth Length (len)") + 
+        scale_colour_manual(values = c("red", "blue")) +
+        facet_grid(. ~ dose)
+    print(g)   
+    
+##  Generate a ggplot2 using the following parameters for the plot:
+##      -   g:                      variable for initial plot layer 
+##      -   aes:                    aesthetics (x: supp, y: len)
+##      -   geom_boxplot color:      OJ = "red", VC = "blue" 
+##      -   geom_point color:        OJ = "red", VC = "blue"
+##      -   x axis label (labs):    "Delivery Method (supp)"
+##      -   y axis label (labs):    "Tooth Length (len)"
+##      -   main title (labs):      "Tooth Length by Delivery Method and Dosage"
+##      -   facet_grid:             Broken out by dose (. ~ dose)
+##      -   theme element:          center: element_text(hjust = 0.5) 
+    
+    
+    g <- ggplot(data, aes(as.factor(dose),len)) +
+        geom_boxplot(aes(colour=factor(dose))) +
+        geom_point(aes(colour=factor(dose))) +
+        theme(plot.title = element_text(hjust = 0.5)) +
+        labs(title="Tooth Length by Delivery Method and Dosage") +
+        labs(x="Delivery Method (dose)",y="Tooth Length (len)") + 
+        scale_colour_manual(values = c("red", "blue", "green")) +
+        facet_grid(. ~ supp)
+    print(g) 
+
+##  Perform t-testing for the hypothesis based upon supplement (supp) only.
+    
+    test_supp <- t.test(len~supp,data = data,paired=FALSE)
+    test_supp
+
+##  Filter the data set to get supplement by dosage level.
+##  Perform t-testing for the hypothesis based upon each dosage (dose).
+    
+    dose_0.5        <- filter(data,dose==.5)
+    dose_1          <- filter(data,dose==1)
+    dose_2          <- filter(data,dose==2)
+    
+    test_dose_0.5   <- t.test(len~supp,data = dose_0.5,paired=FALSE)
+    test_dose_1     <- t.test(len~supp,data = dose_1,paired=FALSE)
+    test_dose_2     <- t.test(len~supp,data = dose_2,paired=FALSE)
+    
+    test_dose_0.5
+    test_dose_1
+    test_dose_2
+```

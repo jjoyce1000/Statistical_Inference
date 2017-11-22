@@ -1,0 +1,162 @@
+---
+title:  "Exponential Distribution Simulation Analysis"
+file:   "Exponential_Distribution_Simulation.Rmd"
+author: "Author: John Joyce"
+date:   "Date: October 20, 2017"
+output: 
+    html_document:
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###**Summary**  
+This analysis investigates the exponential distribution and compares it with the Central Limit Theorem. The Central Limit Theorem (CLT) states that the distribution of averages of iid variables becomes that of a standard normal as the sample size increases.
+
+$\frac {\bar{X}-\mu} {\sigma / \sqrt n}$ has a distribution like that of a standard normal for large n.
+
+The exponential distribution can be simulated with rexp(n,lambda) where lambda is the rate parameter ($\lambda$).  
+This analysis will perform 1000 simulations using a lambda = .2 and n = 40 exponentials.  
+The theoretical mean of the exponential distribution is shown below:
+$$Mean=\mu=\frac{1} {\lambda}=\frac{1} {.2}=5$$
+The theoretical standard deviation of the exponential distribution is shown below:
+$$Standard Deviation=\sigma=\frac{1} {\lambda}=\frac{1} {.2}=5$$
+
+The variance of the exponential distribution for this analysis is shown below:
+$$Variance=\sigma_x^{2}=\frac{\sigma^{2}} {n}=\frac{1} {\lambda^{2}*n}=\frac{1} {.2^{2}*40}=.625$$  
+
+###**Simulations**  
+This section contains the code for performing the exponential distribution simulations.
+The following code stores mean, standard deviation, and variance calculations for 200, 500, 
+and 1000 simulations using the rexp(n,lambda) function with n = 40 and lambda = .2.
+
+```{r echo=TRUE, message=FALSE,warning=FALSE}
+## This section contains the code for performing the exponential distribution simulations.
+## This analysis performs 1000 simulations using the rexp(n,lambda) function with n = 40 and lambda = .2.
+## The following code stores mean, standard deviation, and variance calculations for 200, 500, 
+## and 1000 simulations.
+
+## Set theoretical_mean and theoretical_sd variables = to 1 / lambda.
+## Set theoretical variance = 1 / (lambda*lambda)
+
+    n = 40
+    lambda = .2
+    theoretical_mean = 1 / lambda
+    theoretical_sd = 1 / lambda
+    theoretical_var = 1 / ((lambda*lambda)*n)
+
+## Create variables to store the mean, standard deviation, and variance for three different
+## simulations (200, 500, 1000).  This is done to illustrate the Central Limit Theorem properties 
+## which has mean, standard deviation, and variance approach the theoretical values as the number of
+## simulations increases.
+
+    mean200 = NULL
+    sd200 = NULL
+    var200 = NULL
+    for (i in 1 : 200) {
+        mean200 = c(mean200, mean(rexp(n,lambda)))
+        sd200 = c(sd200, sd(rexp(n,lambda)))
+        var200 = c(var200,(sd200*sd200)/n) }
+
+    mean500 = NULL
+    sd500 = NULL
+    var500 = NULL
+    for (i in 1 : 500) {
+        mean500 = c(mean500, mean(rexp(n,lambda)))
+        sd500 = c(sd500, sd(rexp(n,lambda)))
+        var500 = c(var500,(sd500*sd500)/n) }
+
+    mean1000 = NULL
+    sd1000 = NULL
+    var1000 = NULL
+    for (i in 1 : 1000) {
+        mean1000 = c(mean1000, mean(rexp(n,lambda)))
+        sd1000 = c(sd1000, sd(rexp(n,lambda))) 
+        var1000 = c(var1000,(sd1000*sd1000)/n) }
+```  
+The exponential density function is shown below with a Mean and Standard Deviation = $\frac{1} {\lambda}$ which is 5 in this analysis.
+```{r echo=TRUE, message=FALSE,warning=FALSE,fig.align='center',fig.height=5,fig.width=10}
+## Set a range for t = 0 to 10 by .1 increments and plot the probability distribution function for the
+## exponential distribution.
+    
+    t <- seq(0,10,0.1)
+    density=dexp(t,rate=.2)
+    plot(density,type="l",lty=1,col="black",xlab="T",main="Probability Distribution Function")
+    abline(v=theoretical_sd,col="red",lwd=3)
+```  
+
+###**Sample Mean versus Theoretical Mean** 
+The following plot illustrates the histogram of the exponential distribution mean for 1000 simulations.
+The theoretical mean is shown with the red vertical line.
+```{r echo=TRUE, message=FALSE,warning=FALSE,fig.align='center',fig.height=5,fig.width=10}
+## Calculate and plot the histogram of the sample mean for the 1000 simulations.
+
+    sample_mean = mean(mean1000)
+    hist(mean1000,main="Figure 1: Histogram of Exponential Distribution Mean\n1000 Simulations",
+        breaks=20,xlab = "Mean of Exponential Distribution",col="blue")
+        abline(v=theoretical_mean,col="red",lwd=3)
+```  
+*Theoretical Mean =     `r round(theoretical_mean,digits=2)`*  
+*Sample Mean =          `r round(sample_mean,digits=2)`* 
+
+The sample mean is equal to the population mean ($\bar{X}_n=\mu$) for this analysis which is an indication that this is a normal distribution.
+
+###**Sample Standard Deviation versus Theoretical Standard Deviation**
+The following plot illustrates the histogram of the exponential distribution standard deviation for 1000 simulations.
+The theoretical standard deviation is shown with the red vertical line.
+```{r echo=TRUE, message=FALSE,warning=FALSE,fig.align='center',fig.height=5,fig.width=10}
+## Calculate and plot the histogram of the sample standard deviation for the 1000 simulations.
+
+    sample_sd = mean(sd1000)
+    hist(sd1000,main="Figure 2: Histogram of Exponential Distribution Standard Deviation\n1000 Simulations",
+        breaks=20,xlab = "Mean of Exponential Distribution",col="blue")
+        abline(v=theoretical_sd,col="red",lwd=3)
+```
+*Theoretical Standard Deviation =     `r round(theoretical_sd,digits=2)`*  
+*Sample Standard Deviation =          `r round(sample_sd,digits=2)`*  
+
+The sample standard deviation is equal to the population standard deviation ($\sigma_x=\frac{\sigma} {\sqrt n}$) for this analysis which is an indication that this is a normal distribution.
+
+###**Sample Variance versus Theoretical Variance**
+The following plot illustrates the histogram of the exponential distribution variance for 1000 simulations.
+The theoretical variance is shown with the red vertical line.
+```{r echo=TRUE, message=FALSE,warning=FALSE,fig.align='center',fig.height=5,fig.width=10}
+## Calculate and plot the histogram of the sample variance for the 1000 simulations.
+
+    sample_var = mean(var1000)
+    hist(var1000,main="Figure 3: Histogram of Exponential Distribution Variance\n1000 Simulations",
+        breaks=20,xlab = "Mean of Exponential Distribution",col="blue")
+        abline(v=theoretical_var,col="red",lwd=3,xlim=c(0,10))
+      
+```
+*Theoretical Variance =               `r round(theoretical_var,digits=3)`*  
+*Sample Variance =                    `r round(sample_var,digits=3)`*
+
+The theoretical variance is equal to square of the sample standard deviation ($Variance=\sigma_x^{2}=\frac{\sigma^{2}} {n}=\frac{1} {\lambda^{2}*n}=\frac{1} {.2^{2}*40}=.625$) for this analysis which is an indication that this is a normal distribution.
+
+###**Conclusion - Normal Distribution**
+
+The Central Limit Theorem (CLT) states that the distribution of averages of iid variables becomes that of a standard normal as the sample size increases.  This property applies to the mean, standard deviation, and variance statistical measures.  Based upon the results of this analysis, the exponential distribution is a normal distribution since the theoretical results are equal to the sampled statisical results.
+
+The following plots illustrate the histograms of the exponential distribution means for 200, 500, and 1000 simulations.
+This illustrates that the sample mean approaches the theoretical mean as the number of simulations increases.
+The theoretical mean is shown with the red vertical lines.
+```{r echo=TRUE, fig.align='center',fig.height=5,fig.width=10}
+
+## Plot the histograms of the sample mean for the various simu for three different
+## simulations (200, 500, 1000) to illustrate that the mean approaches the expected mean as the number
+## of simulations increases.  
+
+    par(mfrow=c(1,3))
+    hist(mean200,main="Figure 4: Histogram of Exponential Distribution\n200 Simulations",
+        breaks=20,xlab = "Mean of Exponential Distribution",col="blue")
+        abline(v=theoretical_sd,col="red",lwd=3)
+    hist(mean500,main="Figure 5: Histogram of Exponential Distribution\n500 Simulations",
+        breaks=20,xlab = "Mean of Exponential Distribution",col="blue")
+        abline(v=theoretical_sd,col="red",lwd=3)
+    hist(mean1000,main="Figure 6: Histogram of Exponential Distribution\n1000 Simulations",
+        breaks=20,xlab = "Mean of Exponential Distribution",col="blue")
+        abline(v=theoretical_sd,col="red",lwd=3)
+```{r}
